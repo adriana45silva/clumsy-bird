@@ -19,6 +19,7 @@ game.PlayScreen = me.ScreenObject.extend({
         game.data.steps = 0;
         game.data.start = false;
         game.data.newHiscore = false;
+        game.data.power = 0;  
 
         me.game.world.addChild(new BackgroundLayer('bg', 1));
 

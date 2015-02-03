@@ -5,7 +5,7 @@ var game = {
         start: false,
         newHiScore: false,
         muted: false,
-        power: false
+        power: 0
     },
 
     "onload": function() {
@@ -143,9 +143,14 @@ var BirdEntity = me.Entity.extend({
 
     onCollision: function(response) {
         var obj = response.b;
-        if (obj.type === 'pipe' || obj.type === 'ground') {
+        if (obj.type === 'ground') {
             me.device.vibrate(500);
             this.collided = true;
+        } 
+
+        if (obj.type === 'pipe') {
+            me.device.vibrate(500);
+            this.collided = true; 
         } 
 
         // remove the hit box
@@ -159,7 +164,6 @@ var BirdEntity = me.Entity.extend({
             me.game.world.removeChildNow(obj);
             game.data.power++;
             me.audio.play('lose');
-            this.body.setCollisionType = me.collision.types.COLLETABLE_OBJECT;
         }
     },
 
@@ -183,6 +187,9 @@ var BirdEntity = me.Entity.extend({
 
 });
 
+/* ==========================================================================
+   Pipe Entity
+   ========================================================================== */
 
 var PipeEntity = me.Entity.extend({
     init: function(x, y) {
@@ -216,7 +223,13 @@ var PipeEntity = me.Entity.extend({
         
     },
 
+
+
 });
+
+/* ==========================================================================
+   Pipe Generator
+   ========================================================================== */
 
 var PipeGenerator = me.Renderable.extend({
     init: function() {
@@ -228,8 +241,16 @@ var PipeGenerator = me.Renderable.extend({
         this.posX = me.game.viewport.width;
     },
 
+    onCollision : function (response){
+            // res.y >0 means touched by something on the bottom
+            // which mean at top position for this one
+        if (response.y < - this.image.width){
+            this.flicker(45);
+        }
+    },
+
     update: function(dt) {
-        console.log(game.data.power);
+        // console.log("Powerup: " + game.data.power);
         if (this.generate++ % this.pipeFrequency == 0) {
             var posY = Number.prototype.random(
                     me.video.renderer.getHeight() - 100,
@@ -240,25 +261,42 @@ var PipeGenerator = me.Renderable.extend({
             // var pipe2 = new me.pool.pull('pipe', this.posX, posY2);
             var hitPos = posY - 100;
             var hit = new me.pool.pull("hit", this.posX, hitPos);
-            var power = new me.pool.pull('power', 200, 450);
+            var power = new me.pool.pull('power', 100, 150);
             pipe1.renderable.flipY(true);
             me.game.world.addChild(pipe1,  10);
             // me.game.world.addChild(pipe2, 10);
             me.game.world.addChild(hit, 11);
 
-            if(game.data.steps < 10) {
+            if (game.data.steps >= 5) {
                 me.game.world.addChild(power, 12);
-                // pipe.body.setCollisionType = me.collision.types.NO_OBJECT;
-                // console.log(power.posX, power.posY);
+
+                if(game.data.power > 1) {
+                    pipe1.body.collisionType = me.collision.types.NO_OBJECT;
+                    console.log("Now you can't be killed by the pipes: " + pipe1.body.collisionType);
+                }
+
+                if (game.data.power > 5) {
+                    me.game.world.removeChild(power);
+                }
+            } 
+
+            if (game.data.steps >=10 ){
+                pipe1.body.collisionType = me.collision.types.ENEMY_OBJECT;
+                console.log("Now you're fucked " + pipe1.body.collisionType);
             }
         }
         
 
         this._super(me.Entity, "update", [dt]);
         return true;
+
     },
 
 });
+
+/* ==========================================================================
+   Hit Entity
+   ========================================================================== */
 
 var HitEntity = me.Entity.extend({
     init: function(x, y) {
@@ -292,7 +330,9 @@ var HitEntity = me.Entity.extend({
 
 });
 
-
+/* ==========================================================================
+    Power Entity
+   ========================================================================== */
 
 var PowerEntity = me.Entity.extend({
     init: function(x, y) {
@@ -316,15 +356,20 @@ var PowerEntity = me.Entity.extend({
     update: function(dt) {
         // mechanics
         this.pos.add(this.body.accel);
-        if (this.pos.x < -this.image.width) {
-            me.game.world.removeChild(this);
-        }
+        // if (this.pos.x < -this.image.width) {
+        //     me.game.world.removeChild(this);
+        // }
+
         this.updateBounds();
         this._super(me.Entity, "update", [dt]);
         return true;
     },
 
 });
+
+/* ==========================================================================
+   Ground Entity
+   ========================================================================== */
 
 var Ground = me.Entity.extend({
     init: function(x, y) {
@@ -571,6 +616,7 @@ game.PlayScreen = me.ScreenObject.extend({
         game.data.steps = 0;
         game.data.start = false;
         game.data.newHiscore = false;
+        game.data.power = 0;  
 
         me.game.world.addChild(new BackgroundLayer('bg', 1));
 
@@ -628,7 +674,8 @@ game.GameOverScreen = me.ScreenObject.extend({
         //save section
         this.savedData = {
             score: game.data.score,
-            steps: game.data.steps
+            steps: game.data.steps,
+            power: game.data.power
         };
         me.save.add(this.savedData);
 
@@ -700,6 +747,7 @@ game.GameOverScreen = me.ScreenObject.extend({
                 this.font = new me.Font('gamefont', 40, 'black', 'left');
                 this.steps = 'Steps: ' + game.data.steps.toString();
                 this.topSteps= 'Higher Step: ' + me.save.topSteps.toString();
+                this.power = 'Power Up: ' + game.data.power.toString();
             },
 
             draw: function (renderer) {
@@ -707,6 +755,7 @@ game.GameOverScreen = me.ScreenObject.extend({
                 var stepsText = this.font.measureText(context, this.steps);
                 var topStepsText = this.font.measureText(context, this.topSteps);
                 var scoreText = this.font.measureText(context, this.score);
+                var powerText = this.font.measureText(context, this.power);
 
                 //steps
                 this.font.draw(
@@ -722,6 +771,13 @@ game.GameOverScreen = me.ScreenObject.extend({
                     this.topSteps,
                     me.game.viewport.width/2 - stepsText.width/2 - 60,
                     me.game.viewport.height/2 + 50
+                );
+
+                this.font.draw(
+                    context,
+                    this.power,
+                    me.game.viewport.width/2 - stepsText.width/2 - 60,
+                    me.game.viewport.height/2 + 100
                 );
             }
         }));

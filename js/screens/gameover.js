@@ -8,7 +8,8 @@ game.GameOverScreen = me.ScreenObject.extend({
         //save section
         this.savedData = {
             score: game.data.score,
-            steps: game.data.steps
+            steps: game.data.steps,
+            power: game.data.power
         };
         me.save.add(this.savedData);
 
@@ -80,6 +81,7 @@ game.GameOverScreen = me.ScreenObject.extend({
                 this.font = new me.Font('gamefont', 40, 'black', 'left');
                 this.steps = 'Steps: ' + game.data.steps.toString();
                 this.topSteps= 'Higher Step: ' + me.save.topSteps.toString();
+                this.power = 'Power Up: ' + game.data.power.toString();
             },
 
             draw: function (renderer) {
@@ -87,6 +89,7 @@ game.GameOverScreen = me.ScreenObject.extend({
                 var stepsText = this.font.measureText(context, this.steps);
                 var topStepsText = this.font.measureText(context, this.topSteps);
                 var scoreText = this.font.measureText(context, this.score);
+                var powerText = this.font.measureText(context, this.power);
 
                 //steps
                 this.font.draw(
@@ -102,6 +105,13 @@ game.GameOverScreen = me.ScreenObject.extend({
                     this.topSteps,
                     me.game.viewport.width/2 - stepsText.width/2 - 60,
                     me.game.viewport.height/2 + 50
+                );
+
+                this.font.draw(
+                    context,
+                    this.power,
+                    me.game.viewport.width/2 - stepsText.width/2 - 60,
+                    me.game.viewport.height/2 + 100
                 );
             }
         }));

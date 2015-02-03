@@ -5,7 +5,7 @@ var game = {
         start: false,
         newHiScore: false,
         muted: false,
-        power: false
+        power: 0
     },
 
     "onload": function() {
