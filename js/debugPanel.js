@@ -141,7 +141,7 @@
         patchSystemFn : function () {
 
             // add a few new debug flag (if not yet defined)
-            me.debug.renderHitBox   = me.debug.renderHitBox   || false;
+            me.debug.renderHitBox   = me.debug.renderHitBox   || true;
             me.debug.renderVelocity = me.debug.renderVelocity || false;
             me.debug.renderQuadTree = me.debug.renderQuadTree || false;
 

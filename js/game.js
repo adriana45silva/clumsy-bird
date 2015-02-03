@@ -4,7 +4,8 @@ var game = {
         steps: 0,
         start: false,
         newHiScore: false,
-        muted: false
+        muted: false,
+        power: false
     },
 
     "onload": function() {
@@ -34,13 +35,15 @@ var game = {
         me.input.bindKey(me.input.KEY.M, "mute", true);
         me.input.bindPointer(me.input.KEY.SPACE);
 
-        me.pool.register("clumsy", BirdEntity);
+        me.pool.register("clumsy", BirdEntity, false);
         me.pool.register("pipe", PipeEntity, true);
         me.pool.register("hit", HitEntity, true);
+        me.pool.register("power", PowerEntity, true);
         me.pool.register("ground", Ground, true);
+        // console.log(me.pool );
 
         // in melonJS 1.0.0, viewport size is set to Infinity by default
-        me.game.viewport.setBounds(0, 0, 900, 600);
+        me.game.viewport.setBounds(0, 0, 900, 900);
         me.state.change(me.state.MENU);
     }
 };

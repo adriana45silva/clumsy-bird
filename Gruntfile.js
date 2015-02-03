@@ -12,6 +12,11 @@ module.exports = function(grunt) {
 
     // Project configuration.
     grunt.initConfig({
+        watch: {
+            files: 'js/**/*.js',
+            tasks: ['concat']
+        },
+
         concat: {
             dist: {
                 src: sourceFiles,
@@ -35,7 +40,7 @@ module.exports = function(grunt) {
 
         jshint: {
             options: {
-                jshintrc: ".jshintrc"
+                jshintrc: '.jshintrc'
             },
 
             beforeConcat: {
@@ -68,16 +73,29 @@ module.exports = function(grunt) {
             ],
         },
 
+        browserSync: {
+            dev: {
+                bsFiles: {
+                    src : 'js/**/*.js'
+                },
+                options: {
+                    watchTask: true
+                }
+            }
+        }
+
     });
 
+    grunt.loadNpmTasks('grunt-browser-sync');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks("grunt-contrib-connect");
-
+    grunt.loadNpmTasks('grunt-contrib-connect');
 
     // Default task.
-    grunt.registerTask('default', ['concat', 'uglify']);
+    grunt.registerTask('default', ['browserSync', 'watch']);
+    grunt.registerTask('build', ['concat', 'uglify']);
     grunt.registerTask('lint', ['jshint:beforeConcat', 'concat', 'jshint:afterConcat']);
 };
