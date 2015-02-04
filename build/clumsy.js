@@ -43,7 +43,7 @@ var game = {
         // console.log(me.pool );
 
         // in melonJS 1.0.0, viewport size is set to Infinity by default
-        me.game.viewport.setBounds(0, 0, 900, 900);
+        me.game.viewport.setBounds(0, 0, 900, 600);
         me.state.change(me.state.MENU);
     }
 };
@@ -51,8 +51,9 @@ var game = {
 game.resources = [
     // images
     {name: "bg", type:"image", src: "data/img/bkg.png"},
-    {name: "clumsy", type:"image", src: "data/img/bichin.png"},
+    {name: "clumsy", type:"image", src: "data/img/char.png"},
     {name: "bichin", type:"image", src: "data/img/bichin2.png"},
+    {name: "moeda", type:"image", src: "data/img/moeda.png"},
     {name: "pipe", type:"image", src: "data/img/pipe.png"},
     {name: "pipe2", type:"image", src: "data/img/pipe2.png"},
     {name: "logo", type:"image", src: "data/img/logo.png"},
@@ -71,14 +72,16 @@ game.resources = [
     {name: "wing", type: "audio", src: "data/sfx/"},
 ];
 
+
+
 var BirdEntity = me.Entity.extend({
     init: function(x, y) {
         var settings = {};
         settings.image = me.loader.getImage('clumsy');
-        settings.width = 32;
-        settings.height = 32;
-        settings.spritewidth = 32;
-        settings.spriteheight= 32;
+        settings.width = 64;
+        settings.height = 64;
+        settings.spritewidth = 64;
+        settings.spriteheight= 64;
 
         this._super(me.Entity, 'init', [x, y, settings]);
         this.alwaysUpdate = true;
@@ -203,9 +206,25 @@ var PipeEntity = me.Entity.extend({
         this._super(me.Entity, 'init', [x, y, settings]);
         this.alwaysUpdate = true;
         this.body.addShape(new me.Rect(0 ,0, settings.width, settings.height));
-        this.body.gravity = 0;
+        this.body.gravity = 5;
         this.body.vel.set(-5, 0);
+        this.tempY;
+        this.downDirectionFlag;
         this.type = 'pipe';
+
+        if(this.pos.y < 0){
+            this.tempY = this.pos.y + 1840; 
+        } else{
+            this.tempY = this.pos.y;
+        }
+
+        // console.log(this.tempY);
+        if(this.tempY < 325){
+            this.downDirectionFlag = true;
+        }
+        else{
+            this.downDirectionFlag = false;
+        }
     },  
 
     update: function(dt) {
@@ -214,9 +233,16 @@ var PipeEntity = me.Entity.extend({
             return this._super(me.Entity, 'update', [dt]);
         }
         this.pos.add(this.body.vel);
-        if (this.pos.x < -this.image.width) {
+        if (this.pos.x < -148) {
             me.game.world.removeChild(this);
         }
+
+        if(this.downDirectionFlag){
+             this.pos.add(new me.Vector2d(-this.gravity * me.timer.tick, 0.5)); 
+        } else{
+            this.pos.add(new me.Vector2d(-this.gravity * me.timer.tick, -0.5)); 
+        }
+
         this.updateBounds();
         this._super(me.Entity, 'update', [dt]);
         return true;
@@ -231,46 +257,121 @@ var PipeEntity = me.Entity.extend({
    Pipe Generator
    ========================================================================== */
 
+// var PipeGenerator = me.Renderable.extend({
+//     init: function() {
+//         this._super(me.Renderable, 'init', [0, me.game.viewport.width, me.game.viewport.height]);
+//         this.alwaysUpdate = true;
+//         this.generate = 0;
+//         this.pipeFrequency = 92;
+//         this.pipeHoleSize = 1240;
+//         this.posX = me.game.viewport.width;
+//     },
+
+//     onCollision : function (response){
+//             // res.y >0 means touched by something on the bottom
+//             // which mean at top position for this one
+//         if (response.y < - this.image.width){
+//             this.flicker(45);
+//         }
+//     },
+
+//     update: function(dt) {
+//         // console.log("Powerup: " + game.data.power);
+//         if (this.generate++ % this.pipeFrequency == 0) {
+//             var posY = Number.prototype.random(
+//                     me.video.renderer.getHeight() - 100,
+//                     200
+//             );
+
+//             var posY2 = posY - me.video.renderer.getHeight() - this.pipeHoleSize;
+//             this.posY = posY2;
+//             var pipe1 = new me.pool.pull('pipe', this.posX, posY);
+//             var pipe2 = new me.pool.pull('pipe', this.posX, posY2);
+//             // var hitPos = posY - 100;
+//             var hit = new me.pool.pull("hit", this.posX, hitPos);
+//             var power = new me.pool.pull('power', 100, 150);
+//             pipe1.renderable.flipY(true);
+//             me.game.world.addChild(pipe1,  10);
+//             me.game.world.addChild(pipe2, 10);
+//             me.game.world.addChild(hit, 11);
+
+//             if(posY < 325){
+//                var hitPos = posY - 100;
+//                console.log(hitPos);
+//            } else {
+//                var hitPos = posY;
+//                console.log(hitPos);
+//            }
+
+            // if (game.data.steps >= 5) {
+            //     me.game.world.addChild(power, 12);
+
+            //     if(game.data.power > 1) {
+            //         pipe1.body.collisionType = me.collision.types.NO_OBJECT;
+            //         console.log("Now you can't be killed by the pipes: " + pipe1.body.collisionType);
+            //     }
+
+            //     if (game.data.power > 5) {
+            //         me.game.world.removeChild(power);
+            //     }
+            // } 
+
+            // if (game.data.steps >=10 ){
+            //     pipe1.body.collisionType = me.collision.types.ENEMY_OBJECT;
+            //     console.log("Now you're fucked " + pipe1.body.collisionType);
+            // }
+//         }
+        
+
+//         this._super(me.Entity, "update", [dt]);
+//         return true;
+
+//     },
+
+// });
+
+
 var PipeGenerator = me.Renderable.extend({
     init: function() {
+        // this.parent(new me.Vector2d(), me.game.viewport.width, me.game.viewport.height);
         this._super(me.Renderable, 'init', [0, me.game.viewport.width, me.game.viewport.height]);
         this.alwaysUpdate = true;
         this.generate = 0;
         this.pipeFrequency = 92;
         this.pipeHoleSize = 1240;
         this.posX = me.game.viewport.width;
-    },
-
-    onCollision : function (response){
-            // res.y >0 means touched by something on the bottom
-            // which mean at top position for this one
-        if (response.y < - this.image.width){
-            this.flicker(45);
-        }
+        this.posY;
     },
 
     update: function(dt) {
-        // console.log("Powerup: " + game.data.power);
+        if (game.data.paused){
+            return this.parent(dt);
+        }
         if (this.generate++ % this.pipeFrequency == 0) {
             var posY = Number.prototype.random(
                     me.video.renderer.getHeight() - 100,
                     200
             );
             var posY2 = posY - me.video.renderer.getHeight() - this.pipeHoleSize;
-            var pipe1 = new me.pool.pull('pipe', this.posX, posY);
-            // var pipe2 = new me.pool.pull('pipe', this.posX, posY2);
-            var hitPos = posY - 100;
-            var hit = new me.pool.pull("hit", this.posX, hitPos);
+            this.posY = posY2;
+            var pipe1 = new me.pool.pull("pipe", this.posX, posY);
+            var pipe2 = new me.pool.pull("pipe", this.posX, posY2);
             var power = new me.pool.pull('power', 100, 150);
-            pipe1.renderable.flipY(true);
-            me.game.world.addChild(pipe1,  10);
-            // me.game.world.addChild(pipe2, 10);
+            if(posY < 325){
+                var hitPos = posY - 100;
+            } else {
+                var hitPos = posY - 150;
+            }
+            var hit = new me.pool.pull("hit", this.posX, hitPos);
+            pipe1.renderable.flipY();
+            me.game.world.addChild(pipe1, 10);
+            me.game.world.addChild(pipe2, 10);
             me.game.world.addChild(hit, 11);
 
             if (game.data.steps >= 5) {
                 me.game.world.addChild(power, 12);
 
-                if(game.data.power > 1) {
+                if(game.data.power >= 1) {
                     pipe1.body.collisionType = me.collision.types.NO_OBJECT;
                     console.log("Now you can't be killed by the pipes: " + pipe1.body.collisionType);
                 }
@@ -285,14 +386,11 @@ var PipeGenerator = me.Renderable.extend({
                 console.log("Now you're fucked " + pipe1.body.collisionType);
             }
         }
-        
-
-        this._super(me.Entity, "update", [dt]);
         return true;
-
     },
 
 });
+
 
 /* ==========================================================================
    Hit Entity
@@ -337,11 +435,11 @@ var HitEntity = me.Entity.extend({
 var PowerEntity = me.Entity.extend({
     init: function(x, y) {
         var settings = {};
-        settings.image = this.image = me.loader.getImage('hit');
-        settings.width = 148;
-        settings.height= 60;
-        settings.spritewidth = 148;
-        settings.spriteheight= 60;
+        settings.image = this.image = me.loader.getImage('moeda');
+        settings.width = 32;
+        settings.height= 32;
+        settings.spritewidth = 32;
+        settings.spriteheight= 32;
 
         this._super(me.Entity, 'init', [x, y, settings]);
         this.alwaysUpdate = true;
@@ -356,9 +454,9 @@ var PowerEntity = me.Entity.extend({
     update: function(dt) {
         // mechanics
         this.pos.add(this.body.accel);
-        // if (this.pos.x < -this.image.width) {
-        //     me.game.world.removeChild(this);
-        // }
+        if (this.pos.x < -148) {
+            me.game.world.removeChild(this);
+        }
 
         this.updateBounds();
         this._super(me.Entity, "update", [dt]);
@@ -616,7 +714,7 @@ game.PlayScreen = me.ScreenObject.extend({
         game.data.steps = 0;
         game.data.start = false;
         game.data.newHiscore = false;
-        game.data.power = 0;  
+        game.data.power = 0;
 
         me.game.world.addChild(new BackgroundLayer('bg', 1));
 

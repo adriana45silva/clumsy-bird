@@ -43,7 +43,7 @@ var game = {
         // console.log(me.pool );
 
         // in melonJS 1.0.0, viewport size is set to Infinity by default
-        me.game.viewport.setBounds(0, 0, 900, 900);
+        me.game.viewport.setBounds(0, 0, 900, 600);
         me.state.change(me.state.MENU);
     }
 };
